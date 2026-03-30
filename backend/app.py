@@ -10,7 +10,7 @@ import time
 # ---------------- APP SETUP ----------------
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # ---------------- LOAD MODEL ----------------
 model = YOLO("best.pt")   # your trained model
@@ -42,7 +42,7 @@ def get_density(count):
 def detection_loop():
     global latest_frame
 
-    cap = cv.VideoCapture("data/crowd_vid.mp4")  # or 0 for webcam
+    cap = cv.VideoCapture("data/road_show.mp4")  # or 0 for webcam
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -62,6 +62,7 @@ def detection_loop():
 
         count = 0
 
+        zones = [0, 0, 0, 0]
         if results.boxes:
             for box in results.boxes:
                 if int(box.cls[0]) == 0:  # person class
@@ -73,6 +74,16 @@ def detection_loop():
 
                     person_centers.append((cx, cy))
                     count += 1
+                    
+                    # Quadrant assignment
+                    if cx < 320 and cy < 240:
+                        zones[0] += 1
+                    elif cx >= 320 and cy < 240:
+                        zones[1] += 1
+                    elif cx < 320 and cy >= 240:
+                        zones[2] += 1
+                    else:
+                        zones[3] += 1
 
         # ---------------- BUILD HEATMAP ----------------
         for (cx, cy) in person_centers:
@@ -118,7 +129,8 @@ def detection_loop():
         # Push real-time data to frontend
         socketio.emit("crowd_update", {
             "people_count": count,
-            "density": density
+            "density": density,
+            "zones": zones
         })
 
         time.sleep(0.04)  # ~25 FPS

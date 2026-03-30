@@ -10,6 +10,7 @@ export function useCrowdData() {
   const [liveData, setLiveData] = useState({
     people_count: 0,
     density: 'Low', // 'Low', 'Medium', 'High'
+    zones: [0, 0, 0, 0],
   });
 
   // Historical Data (for charts)
@@ -21,7 +22,6 @@ export function useCrowdData() {
   useEffect(() => {
     // Initialize Socket connection
     const newSocket = io(SOCKET_URL, {
-      transports: ['websocket'],
       autoConnect: true,
       reconnection: true,
     });
@@ -42,15 +42,20 @@ export function useCrowdData() {
       // data expected: { people_count: number, density: string }
       if (!data) return;
 
-      const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       
       setLiveData({
         people_count: data.people_count || 0,
         density: data.density || 'Low',
+        zones: data.zones || [0, 0, 0, 0],
       });
 
-      // Update history for charts (keep last 20 data points)
+      // Update history for charts (keep last 20 data points, throttle to 1 per second)
       setHistory(prev => {
+        if (prev.length > 0 && prev[prev.length - 1].time === timestamp) {
+           // Don't add multiple points for the same second
+           return prev;
+        }
         const newData = [...prev, { time: timestamp, count: data.people_count || 0 }];
         return newData.length > 20 ? newData.slice(newData.length - 20) : newData;
       });
