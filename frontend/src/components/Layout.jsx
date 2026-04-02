@@ -2,12 +2,12 @@ import React from 'react';
 import { Sidebar } from './Sidebar';
 import { TopNavbar } from './TopNavbar';
 
-export function Layout({ children }) {
+export function Layout({ children, activeView, onViewChange }) {
   return (
     <div className="flex bg-[#060e20] min-h-screen font-body text-white">
-      <Sidebar />
+      <Sidebar activeView={activeView} onViewChange={onViewChange} />
       <div className="flex-1 ml-64 flex flex-col min-h-screen">
-        <TopNavbar />
+        <TopNavbar activeView={activeView} />
         <main className="flex-1 p-8 overflow-y-auto">
           {children}
         </main>

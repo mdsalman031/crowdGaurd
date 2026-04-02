@@ -1,0 +1,7 @@
+Importing Ultralytics...
+Ultralytics imported
+Loading YOLO model...
+YOLO model loaded from D:\crowdGaurd\backend\best.pt
+ * Serving Flask app 'app'
+ * Debug mode: off
+Detection loop started

@@ -1,13 +1,21 @@
 import React from 'react';
 import { Search, Bell, User } from 'lucide-react';
 
-export function TopNavbar() {
+const VIEW_TITLES = {
+  dashboard: 'Analytics',
+  cameras: 'Cameras',
+  zones: 'Zones',
+  alerts: 'Alerts',
+  training: 'AI Training',
+};
+
+export function TopNavbar({ activeView = 'dashboard' }) {
   return (
     <header className="h-20 w-full flex items-center justify-between px-8 bg-background border-b ghost-border backdrop-blur-md sticky top-0 z-10 transition-all">
       <div className="flex items-center space-x-8">
         <div className="flex items-center space-x-2">
           <div className="w-2.5 h-2.5 rounded-full bg-secondary shadow-[0_0_12px_rgba(107,254,156,0.6)] animate-pulse"></div>
-          <span className="text-xs font-bold tracking-widest text-secondary uppercase">Live Feed</span>
+          <span className="text-xs font-bold tracking-widest text-secondary uppercase">{VIEW_TITLES[activeView] || 'Live Feed'}</span>
         </div>
         
         <nav className="flex space-x-6">
