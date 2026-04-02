@@ -2,13 +2,13 @@ import React from 'react';
 import { LayoutDashboard, Video, Grid, AlertTriangle, Brain, Activity, HelpCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-export function Sidebar() {
+export function Sidebar({ activeView, onViewChange }) {
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', active: true },
-    { icon: Video, label: 'Cameras' },
-    { icon: Grid, label: 'Zones' },
-    { icon: AlertTriangle, label: 'Alerts' },
-    { icon: Brain, label: 'AI Training' },
+    { icon: LayoutDashboard, label: 'Dashboard', view: 'dashboard' },
+    { icon: Video, label: 'Cameras', view: 'cameras' },
+    { icon: Grid, label: 'Zones', view: 'zones' },
+    { icon: AlertTriangle, label: 'Alerts', view: 'alerts' },
+    { icon: Brain, label: 'AI Training', view: 'training' },
   ];
 
   const bottomItems = [
@@ -31,12 +31,13 @@ export function Sidebar() {
               key={idx}
               className={cn(
                 "flex items-center w-full space-x-4 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 group text-on-surface-variant hover:bg-surface-container-highest",
-                item.active && "bg-surface-container-highest text-primary font-semibold"
+                activeView === item.view && "bg-surface-container-highest text-primary font-semibold"
               )}
+              onClick={() => onViewChange?.(item.view)}
             >
-              <Icon size={20} className={cn("", item.active ? "text-primary" : "text-on-surface-variant group-hover:text-primary transition-colors")} />
+              <Icon size={20} className={cn("", activeView === item.view ? "text-primary" : "text-on-surface-variant group-hover:text-primary transition-colors")} />
               <span>{item.label}</span>
-              {item.active && <div className="ml-auto w-1 h-5 bg-primary rounded-full shadow-[0_0_10px_rgba(94,180,255,0.8)]"></div>}
+              {activeView === item.view && <div className="ml-auto w-1 h-5 bg-primary rounded-full shadow-[0_0_10px_rgba(94,180,255,0.8)]"></div>}
             </button>
           );
         })}

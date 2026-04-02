@@ -2,15 +2,13 @@ import React from 'react';
 import { cn } from '../lib/utils';
 import { ShieldAlert } from 'lucide-react';
 
-export function AlertsPanel({ alerts = [] }) {
-  // Use mock alerts if empty for presentation purposes
-  const displayAlerts = alerts.length > 0 ? alerts : [
-    { id: 1, type: 'critical', time: '2m ago', title: 'Maximum capacity reached in North Concourse.', action: true },
-    { id: 2, type: 'warning', time: '14m ago', title: 'Unusual stationary object identified in Gate 12 loading bay.', action: true, image: true },
-    { id: 3, type: 'info', time: '1h ago', title: 'Zone 03 facial recognition database updated (8.4k entries).', action: false },
-    { id: 4, type: 'safe', time: '2h ago', title: 'Slight congestion forming at Escalator B entrance.', action: false }
-  ];
-
+export function AlertsPanel({
+  alerts = [],
+  onDispatchAlert,
+  onIgnoreAlert,
+  actionState = {},
+  activeCount,
+}) {
   const getAlertStyles = (type) => {
     switch(type) {
       case 'critical': return { border: 'border-l-error', text: 'text-error', label: 'CRITICAL BREACH' };
@@ -29,13 +27,25 @@ export function AlertsPanel({ alerts = [] }) {
           <span>Real-Time Alerts</span>
         </h3>
         <span className="bg-surface-container-low px-2 py-1 rounded text-[10px] uppercase font-bold text-on-surface-variant">
-          8 Active
+          {activeCount ?? alerts.length} Active
         </span>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {displayAlerts.map((alert) => {
+        {alerts.length === 0 && (
+          <div className="glass-panel p-5 border ghost-border text-center">
+            <p className="text-[10px] font-bold tracking-widest uppercase text-secondary mb-2">No Critical Alerts</p>
+            <p className="text-sm text-on-surface-variant">
+              A new alert will appear here only when the feed crosses into high density.
+            </p>
+          </div>
+        )}
+
+        {alerts.map((alert) => {
           const styles = getAlertStyles(alert.type);
+          const isDispatching = actionState[alert.id] === 'dispatch';
+          const isIgnoring = actionState[alert.id] === 'ignore';
+          const isDispatched = alert.status === 'dispatched';
           
           return (
             <div key={alert.id} className={cn("glass-panel p-4 border-l-[3px] shadow-ambient transition-all hover:bg-surface-container-highest", styles.border)}>
@@ -48,15 +58,37 @@ export function AlertsPanel({ alerts = [] }) {
                 {alert.title || alert.message}
               </p>
 
-              {alert.action && (
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-on-surface-variant">
+                <span>{`Response: ${alert.response || 'pending'}`}</span>
+                <span className="text-on-surface-variant/40">|</span>
+                <span>{`Peak: ${alert.peak_people_count || alert.people_count || 0}`}</span>
+              </div>
+
+              {alert.action && alert.status === 'active' && (
                 <div className="flex space-x-3 mt-4">
-                  <button className={cn("px-4 py-1.5 rounded-sm text-[10px] font-bold tracking-wider uppercase transition-colors", alert.type === 'critical' ? 'bg-error text-white hover:bg-error/80' : 'bg-surface-variant text-white hover:bg-surface-variant/80')}>
-                     {alert.type === 'critical' ? 'Dispatch' : 'View Snapshot'}
+                  <button
+                    onClick={() => onDispatchAlert?.(alert.id)}
+                    disabled={!onDispatchAlert || isDispatched || isDispatching || isIgnoring}
+                    className={cn(
+                      "px-4 py-1.5 rounded-sm text-[10px] font-bold tracking-wider uppercase transition-colors disabled:opacity-60 disabled:cursor-not-allowed",
+                      alert.type === 'critical' ? 'bg-error text-white hover:bg-error/80' : 'bg-surface-variant text-white hover:bg-surface-variant/80'
+                    )}
+                  >
+                     {isDispatched ? 'Dispatched' : isDispatching ? 'Dispatching...' : alert.type === 'critical' ? 'Dispatch' : 'View Snapshot'}
                   </button>
                   {alert.type === 'critical' && (
-                    <button className="px-4 py-1.5 rounded-sm text-[10px] font-bold tracking-wider uppercase text-on-surface-variant hover:text-white transition-colors">
-                      Ignore
+                    <button
+                      onClick={() => onIgnoreAlert?.(alert.id)}
+                      disabled={!onIgnoreAlert || isDispatching || isIgnoring}
+                      className="px-4 py-1.5 rounded-sm text-[10px] font-bold tracking-wider uppercase text-on-surface-variant hover:text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {isIgnoring ? 'Ignoring...' : 'Ignore'}
                     </button>
+                  )}
+                  {isDispatched && (
+                    <span className="px-3 py-1.5 rounded-sm text-[10px] font-bold tracking-wider uppercase bg-secondary/15 text-secondary border border-secondary/30">
+                      Team Notified
+                    </span>
                   )}
                 </div>
               )}

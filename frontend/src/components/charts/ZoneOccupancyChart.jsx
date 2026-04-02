@@ -1,13 +1,14 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 
-export function ZoneOccupancyChart() {
-  const zones = [
-    { name: 'ZONE 1', value: 45, color: 'bg-secondary' }, // green
-    { name: 'ZONE 2', value: 78, color: 'bg-tertiary' },  // yellow
-    { name: 'ZONE 3', value: 22, color: 'bg-secondary' }, // green
-    { name: 'ZONE 4', value: 92, color: 'bg-error' },     // red
-  ];
+export function ZoneOccupancyChart({ zones = [0, 0, 0, 0], total = 1 }) {
+  const zoneData = zones.map((count, idx) => {
+    const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+    let color = 'bg-secondary'; // green
+    if (percentage > 80) color = 'bg-error'; // red
+    else if (percentage > 60) color = 'bg-tertiary'; // yellow
+    return { name: `ZONE ${idx + 1}`, value: percentage, color };
+  });
 
   return (
     <div className="glass-card p-6 h-full flex flex-col border ghost-border group">
@@ -21,7 +22,7 @@ export function ZoneOccupancyChart() {
       </div>
       
       <div className="flex-1 space-y-6">
-        {zones.map((zone, idx) => (
+        {zoneData.map((zone, idx) => (
           <div key={idx} className="flex items-center space-x-4">
             <span className="text-[10px] w-12 font-bold tracking-widest text-on-surface-variant uppercase">{zone.name}</span>
             <div className="flex-1 h-3 bg-surface-container-lowest rounded-sm overflow-hidden border border-[rgba(64,72,93,0.3)]">

@@ -1,14 +1,21 @@
 import React from 'react';
-import { useCrowdData } from '../hooks/useCrowdData';
 import { KpiCard } from './KpiCard';
 import { VideoFeed } from './VideoFeed';
 import { AlertsPanel } from './AlertsPanel';
 import { CrowdFlowChart } from './charts/CrowdFlowChart';
 import { ZoneOccupancyChart } from './charts/ZoneOccupancyChart';
 
-export function Dashboard() {
-  const { isConnected, liveData, history, alerts } = useCrowdData();
-
+export function Dashboard({
+  isConnected,
+  liveData,
+  history,
+  activeAlerts,
+  alertSummary,
+  videoUrl,
+  dispatchAlert,
+  ignoreAlert,
+  alertActionState,
+}) {
   // Status computation for UI based on density
   const getDensityHighlight = (density) => {
     switch (density.toLowerCase()) {
@@ -37,35 +44,41 @@ export function Dashboard() {
         />
         <KpiCard 
           title="Network Nodes" 
-          value="42" 
-          subtext="/ 48" 
+          value="4" 
+          subtext="/ 4" 
           accentColor="on-surface-variant"
         />
         <KpiCard 
           title="AI Alerts (24H)" 
-          value="18" 
-          subtext="Action Needed" 
+          value={(alertSummary?.total_events ?? liveData.alerts_count).toString()}
+          subtext={`${alertSummary?.active_alerts_count ?? activeAlerts.length} active`}
           accentColor="tertiary"
         />
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Column (Video & Charts) */}
         <div className="lg:col-span-2 flex flex-col space-y-6">
-          <div className="flex-1 min-h-[400px]">
-            <VideoFeed />
+          <div className="flex-1 max-h-[480px]">
+            <VideoFeed videoUrl={videoUrl} isConnected={isConnected} />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-64">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ minHeight: 250 }}>
             <CrowdFlowChart data={history} />
-            <ZoneOccupancyChart />
+            <ZoneOccupancyChart zones={liveData.zones} total={liveData.people_count} />
           </div>
         </div>
 
         {/* Right Column (Alerts) */}
         <div className="lg:col-span-1 h-full">
-          <AlertsPanel alerts={alerts} />
+          <AlertsPanel
+            alerts={activeAlerts}
+            onDispatchAlert={dispatchAlert}
+            onIgnoreAlert={ignoreAlert}
+            actionState={alertActionState}
+            activeCount={alertSummary?.active_alerts_count ?? activeAlerts.length}
+          />
         </div>
 
       </div>

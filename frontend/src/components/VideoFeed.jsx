@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function VideoFeed() {
+export function VideoFeed({ videoUrl = 'http://127.0.0.1:5000/video', isConnected = false }) {
   return (
     <div className="relative w-full h-full min-h-[400px] glass-card overflow-hidden border ghost-border group">
       {/* Top Bar Video Stats */}
@@ -15,22 +15,23 @@ export function VideoFeed() {
       </div>
 
       {/* Actual Feed (Using Flask multipart stream or fallback) */}
-      <div className="w-full h-full bg-surface-container-low flex items-center justify-center">
-        {/* If the user has the backend running, we can load the image. Otherwise fallback */}
-        <img 
-          src="http://127.0.0.1:5000/video" 
-          alt="Live Camera Feed"
-          className="w-full h-full object-cover opacity-80 mix-blend-screen"
-          onError={(e) => {
-            e.target.style.display = 'none';
-            document.getElementById('fallback-video').style.display = 'flex';
-          }}
-        />
-        
-        {/* Fallback if backend is down */}
-        <div id="fallback-video" className="hidden flex-col items-center justify-center text-on-surface-variant">
-           <p className="text-sm font-medium tracking-widest uppercase">Video Signal Lost</p>
-           <p className="text-xs text-primary/50 mt-1 uppercase">Awaiting Connection...</p>
+      <div className="w-full h-full bg-surface-container-low flex items-center justify-center p-2">
+        <div className="relative w-full h-full max-h-[480px] rounded-lg overflow-hidden border border-surface-variant">
+          <img
+            src={videoUrl}
+            alt="Live Camera Feed"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              document.getElementById('fallback-video').style.display = 'flex';
+            }}
+          />
+
+          {/* Fallback if backend is down */}
+          <div id="fallback-video" className="hidden flex-col items-center justify-center text-on-surface-variant">
+             <p className="text-sm font-medium tracking-widest uppercase">{isConnected ? 'Camera Warmup In Progress' : 'Video Signal Lost'}</p>
+             <p className="text-xs text-primary/50 mt-1 uppercase">{isConnected ? 'Waiting For First Frame...' : 'Awaiting Connection...'}</p>
+          </div>
         </div>
       </div>
 

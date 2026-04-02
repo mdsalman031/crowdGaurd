@@ -1,0 +1,7 @@
+Importing Ultralytics...
+Ultralytics imported
+Loading YOLO model...
+YOLO model loaded from D:\crowdGaurd\backend\best.pt
+Starting server with async mode: threading
+ * Serving Flask app 'app'
+ * Debug mode: off
