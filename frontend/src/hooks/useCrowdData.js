@@ -345,7 +345,6 @@ export function useCrowdData() {
 
     // Initialize Socket connection
     const newSocket = io(SOCKET_URL, {
-      transports: ['polling', 'websocket'],
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: Infinity,
@@ -383,9 +382,9 @@ export function useCrowdData() {
       if (!data) return;
       if (activeCameraId && data.camera_id !== activeCameraId) return;
 
-      const now = Date.now();
-      const timestamp = new Date(now).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       
+      setLiveData({
       setLiveData({
         camera_id: data.camera_id || null,
         camera_name: data.camera_name || null,
@@ -397,6 +396,7 @@ export function useCrowdData() {
         inference_latency_ms: data.inference_latency_ms ?? null,
         deployment_mode: data.deployment_mode || null,
       });
+      });
       setLastUpdated(now);
       setAlertSummary(prev => ({
         ...prev,
@@ -404,7 +404,7 @@ export function useCrowdData() {
         total_events: data.high_density_events ?? prev.total_events,
       }));
 
-      // Update history for charts (keep last 20 data points)
+      // Update history for charts (keep last 20 data points, throttle to 1 per second)
       setHistory(prev => {
         if (typeof data.people_count !== 'number') {
           return prev;

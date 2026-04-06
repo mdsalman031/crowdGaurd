@@ -26,9 +26,7 @@ print("Ultralytics imported", flush=True)
 # ---------------- APP SETUP ----------------
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
-
-BASE_DIR = Path(__file__).resolve().parent
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # ---------------- LOAD MODEL ----------------
 deployment_profile = resolve_deployment_profile(os.getenv("CROWDGUARD_DEPLOYMENT_MODE"))
@@ -369,6 +367,7 @@ def detection_loop(camera_state):
 
         count = 0
 
+        zones = [0, 0, 0, 0]
         if results.boxes:
             for box in results.boxes:
                 if int(box.cls[0]) == 0:  # person class
@@ -380,6 +379,16 @@ def detection_loop(camera_state):
 
                     person_centers.append((cx, cy))
                     count += 1
+                    
+                    # Quadrant assignment
+                    if cx < 320 and cy < 240:
+                        zones[0] += 1
+                    elif cx >= 320 and cy < 240:
+                        zones[1] += 1
+                    elif cx < 320 and cy >= 240:
+                        zones[2] += 1
+                    else:
+                        zones[3] += 1
 
         # ---------------- CALCULATE ZONES ----------------
         zones = [0, 0, 0, 0]
@@ -503,6 +512,33 @@ def detection_loop(camera_state):
             "deployment_mode": deployment_profile.name,
             "people_count": count,
             "density": density,
+<<<<<<< HEAD
+            "baseline_density": density_result.baseline_label,
+            "weighted_density": round(density_result.weighted_density, 6),
+            "smoothed_weighted_density": round(density_result.smoothed_weighted_density, 6),
+            "density_smoothing_alpha": density_config.smoothing_alpha,
+            "baseline_density_score": round(density_result.baseline_density_score, 6),
+            "adaptive_density_thresholds": [round(value, 6) for value in density_result.adaptive_thresholds],
+            "adaptive_threshold_window": density_config.adaptive_threshold_window,
+            "perspective_zones": density_result.perspective_zone_counts,
+            "perspective_zone_score": [round(score, 3) for score in density_result.perspective_zone_score],
+            "surge_alert_active": camera_state.active_surge_alert_id is not None,
+            "count_delta": anomaly_result.count_delta,
+            "count_velocity": round(anomaly_result.velocity, 3),
+            "processing_interval_seconds": round(processing_interval, 3),
+            "processing_fps": round(camera_state.frame_rate_controller.current_fps, 2),
+            "model_name": model_selection.active_model,
+            "requested_model": model_selection.requested_model,
+            "model_fallback_used": model_selection.fallback_used,
+            "inference_latency_ms": round(inference_latency_ms, 2),
+            "measured_fps": performance_snapshot["measured_fps"],
+            "average_latency_ms": performance_snapshot["latency_ms"],
+        socketio.emit("crowd_update", {
+            "camera_id": camera_state.config.camera_id,
+            "camera_name": camera_state.config.display_name,
+            "deployment_mode": deployment_profile.name,
+            "people_count": count,
+            "density": density,
             "baseline_density": density_result.baseline_label,
             "weighted_density": round(density_result.weighted_density, 6),
             "smoothed_weighted_density": round(density_result.smoothed_weighted_density, 6),
@@ -530,6 +566,7 @@ def detection_loop(camera_state):
             "zones": zones,
             "alerts_count": len(active_alerts(camera_state.config.camera_id)),
             "high_density_events": high_density_events
+        })
         })
 
         camera_state.frame_index += 1
